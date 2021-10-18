@@ -1,26 +1,27 @@
 package main
 
 import (
-	"encoding/json"
+	"bufio"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-type Config struct {
-	BlackList []string
-}
+var workDir = "/data/media/0/Documents/AutoClean/"
 
 func init() {
-	logFile, _ := os.OpenFile("/data/media/0/Documents/AutoClean/run.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, _ := os.OpenFile(workDir+"run.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	log.SetOutput(logFile)
 	log.SetFlags(log.Ldate | log.Ltime)
 }
 
 func main() {
 	config := readConfig()
-	for _, path := range config.BlackList {
+	for _, path := range config {
+		if strings.Contains(path, "#") || path == "" {
+			continue
+		}
 		files, err := filepath.Glob(path)
 		if err != nil {
 			log.Fatalln(err.Error())
@@ -31,29 +32,29 @@ func main() {
 	}
 }
 
-func readConfig() Config {
-	file, err := os.Open("/data/media/0/Documents/AutoClean/config.json")
+func readConfig() []string {
+	file, err := os.Open(workDir + "config.prop")
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	var c Config
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			log.Fatalln(err.Error())
-		}
-	}(file)
-	err = json.NewDecoder(file).Decode(&c)
+	var config []string
+	fileScanner := bufio.NewScanner(file)
+	for fileScanner.Scan() {
+		config = append(config, fileScanner.Text())
+	}
+	if err := fileScanner.Err(); err != nil {
+		log.Fatalln(err.Error())
+	}
+	err = file.Close()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	return c
+	return config
 }
 
 func removeFileOrDir(path string) {
 	s, err := os.Stat(path)
 	if err != nil {
-		//log.Println(err.Error())
 		return
 	}
 	if s.IsDir() {
