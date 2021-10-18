@@ -14,7 +14,7 @@
 1. 下载项目[bin目录](https://github.com/SukiEva/Scripts/tree/main/AutoClean/bin)下的二进制文件（[蓝奏云](https://suki.lanzoui.com/iZNoNvht42d)），放到手机根目录 /data 目录下（只有data目录下才能授予执行权限）
 2. 授予 autoclean 可执行权限(以下二选一)：
     - MT管理器等手动授权
-    - 命令行获取su后输入 chomd 770 autoclean
+    - 命令行获取su后输入 chmod 770 /data/autoclean
 3. 在用户目录 Documents 中新建 AutoClean 文件夹（想改目录自己复制源码修改编译）
 4. 在上述文件夹中新建 config.prop，每行一个文件/文件夹路径，支持通配符正则，示例如下：
 ```shell
