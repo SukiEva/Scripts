@@ -1,0 +1,13 @@
+path: D:\Applications\OtherApps
+proxy:
+  http: http://127.0.0.1:7890
+  https: http://127.0.0.1:7890
+repos:
+- author: ender-zhao
+  key: asar
+  name: Clash-for-Windows_Chinese
+  tag: Clash-V0.16.4_CN
+- author: SukiEva
+  key: ''
+  name: Myhhu
+  tag: v2.8
