@@ -30,4 +30,28 @@
 
 ## 其他
 
-娱乐作品，随缘更新
+自带白名单保护：忽略以下的路径
+
+```go
+var (
+	workDir    = "/data/media/0/Documents/AutoClean/"
+	ignoreList = []string{
+		"Android",
+		"Android/data",
+		"Android/media",
+		"Android/obb",
+		"DCIM",
+		"Documents",
+		"Download",
+		"Movies",
+		"Music",
+		"Pictures",
+	}
+	sdcardList = []string{
+		"/sdcard/",
+		"/storage/emulated/0/",
+		"/data/media/0/",
+	}
+)
+```
+
