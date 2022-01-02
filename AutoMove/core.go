@@ -10,8 +10,13 @@ import (
 )
 
 var (
-	workDir = "/data/media/0/Documents/AutoMove/"
-	cmd *exec.Cmd
+	workDir    = "/data/media/0/Documents/AutoMove/"
+	cmd        *exec.Cmd
+	sdcardList = []string{
+		"/sdcard/",
+		"/storage/emulated/0/",
+		"/data/media/0/",
+	}
 )
 
 func main() {
@@ -29,6 +34,10 @@ func main() {
 			continue
 		}
 		dirs := strings.Split(path, "&")
+		if !hasPrefix(sdcardList, dirs[0]) || !hasPrefix(sdcardList, dirs[1]) {
+			log.Println(strings.Join([]string{"保护：前缀", path}, " "))
+			continue
+		}
 		for i := 0; i < len(dirs); i++ {
 			if strings.HasSuffix(dirs[i], "/") {
 				dirs[i] = dirs[i][:len(dirs[i])-1]
@@ -50,7 +59,6 @@ func moveFileOrDir(sourcePath, destinationPath string) {
 			return
 		}
 	}
-	rmList := make([]string, 0)
 	err := filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		if strings.HasPrefix(info.Name(), ".") {
 			if info.IsDir() {
@@ -58,13 +66,13 @@ func moveFileOrDir(sourcePath, destinationPath string) {
 			}
 			return nil
 		}
-		if path != sourcePath {
-			rmList = append(rmList, path)
-		}
 		if info.IsDir() {
 			return nil
 		}
 		newDestinationPath := strings.Join([]string{destinationPath, "/", info.Name()}, "")
+		if exists(newDestinationPath) {
+			return nil
+		}
 		moveFile(path, newDestinationPath)
 		log.Println(strings.Join([]string{"移动：", path, "=>", newDestinationPath}, " "))
 		return nil
@@ -72,27 +80,16 @@ func moveFileOrDir(sourcePath, destinationPath string) {
 	if err != nil {
 		log.Println(strings.Join([]string{"异常：", err.Error()}, " "))
 	}
-	for _, rm := range rmList {
-		removeFileOrDir(rm)
-	}
+	rmEmptyDir(sourcePath)
 }
 
-func removeFileOrDir(path string) {
-	s, err := os.Stat(path)
+func rmEmptyDir(path string) {
+	cmd = exec.Command("find", path, "-type", "d", "-empty", "-not", "-path", "'*/\\.*'")
+	out, err := cmd.Output()
 	if err != nil {
-		return
+		log.Println(strings.Join([]string{"错误：空文件夹删除失败", err.Error(), path}, " "))
 	}
-	if s.IsDir() {
-		err := os.RemoveAll(path)
-		if err != nil {
-			return
-		}
-	} else {
-		err := os.Remove(path)
-		if err != nil {
-			return
-		}
-	}
+	log.Println(strings.Join([]string{"清理：空文件夹", string(out)}, " "))
 }
 
 func moveFile(sourcePath, destinationPath string) {
@@ -129,4 +126,13 @@ func readConfig() []string {
 		log.Fatalln(err.Error())
 	}
 	return config
+}
+
+func hasPrefix(str []string, tmp string) bool {
+	for _, s := range str {
+		if strings.HasPrefix(tmp, s) {
+			return true
+		}
+	}
+	return false
 }
